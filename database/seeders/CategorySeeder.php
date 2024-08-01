@@ -14,14 +14,14 @@ class CategorySeeder extends Seeder
      */
     public function run(): void
     {
-        Category::create([
-            'name' => 'Full-time',
-            'name' => 'Part-time',
-            'name' => 'Contract',
-            'name' => 'Independent contractor',
-            'name' => 'Temporary',
-            'name' => 'On-call',
-            'name' => 'Volunteer',
+        Category::insert([
+            ['name' => 'Full-time'],
+            ['name' => 'Part-time'],
+            ['name' => 'Contract'],
+            ['name' => 'Independent contractor'],
+            ['name' => 'Temporary'],
+            ['name' => 'On-call'],
+            ['name' => 'Volunteer']
         ]);
     }
 }

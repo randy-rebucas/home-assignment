@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use App\Enums\RoleTypeEnum;
 
 class AuthController extends Controller
 {
@@ -29,7 +30,10 @@ class AuthController extends Controller
             'password'  => Hash::make($request->password)
         ]);
 
+        $user->assignRole(RoleTypeEnum::MANAGER);
+
         $token = $user->createToken('auth_token')->plainTextToken;
+
         return response()->json([
             'data'          => $user,
             'access_token'  => $token,

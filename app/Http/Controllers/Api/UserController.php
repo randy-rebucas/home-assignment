@@ -10,7 +10,7 @@ use App\Http\Resources\User\UserResource;
 use Illuminate\Validation\Rules;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Auth\Events\Registered;
-
+use App\Enums\RoleTypeEnum;
 use App\Filters\v1\UserFilter;
 
 class UserController extends Controller
@@ -53,9 +53,13 @@ class UserController extends Controller
                 'password' => Hash::make($request->string('password')),
             ]);
 
+            $user->assignRole(RoleTypeEnum::EMPLOYEE);
+
+            $token = $user->createToken('auth_token')->plainTextToken;
+
             event(new Registered($user));
 
-            return response()->json(UserResource::make($user));
+            return response()->json([UserResource::make($user), 'token' => $token]);
         } catch (\Throwable $e) {
             return response()->json(['message' => $e->getMessage()], 500);
         }
@@ -64,10 +68,9 @@ class UserController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(int $id)
+    public function show(User $user)
     {
         try {
-            $user = User::findOrFail($id);
             return response()->json(new UserResource($user));
         } catch (\Throwable $e) {
             return response()->json(['message' => $e->getMessage()], 500);
@@ -77,13 +80,10 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, int $id)
+    public function update(Request $request, User $user)
     {
         try {
-            $user = User::find($id);
-            $user->name = $request->name;
-            $user->save();
-
+            $user->update($request->all());
             return response()->json(UserResource::make($user));
         } catch (\Throwable $e) {
             return response()->json(['message' => $e->getMessage()], 500);
@@ -93,12 +93,12 @@ class UserController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(int $id)
+    public function destroy(User $user)
     {
         try {
-            User::find($id)->delete();
+            $user->delete();
 
-            return response()->json(['message' => 'User Id ' . $id . ' successfully deleted.']);
+            return response()->json(['message' => 'User Id ' . $user->id . ' successfully deleted.']);
         } catch (\Throwable $e) {
             return response()->json(['message' => $e->getMessage()], 500);
         }

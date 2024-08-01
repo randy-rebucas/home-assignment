@@ -3,6 +3,10 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\ManagerController;
+use App\Http\Controllers\Api\PermissionController;
+use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\UserController;
 
 Route::prefix('v1')->group(function () {
@@ -23,11 +27,22 @@ Route::prefix('v1')->group(function () {
             return $request->user();
         });
 
+        // Category
+        Route::get('/categories', [CategoryController::class, 'index']);
+        Route::get('/category/{category}', [CategoryController::class, 'show']);
+        Route::post('/categories', [CategoryController::class, 'store']);
+        Route::put('/category/{category}', [CategoryController::class, 'update']);
+        Route::delete('/category/{category}', [CategoryController::class, 'destroy']);
+
         // User
         Route::get('/users', [UserController::class, 'index']);
-        Route::get('/user/{id}', [UserController::class, 'show']);
+        Route::get('/user/{user}', [UserController::class, 'show']);
         Route::post('/users', [UserController::class, 'store']);
-        Route::put('/user/{id}', [UserController::class, 'update']);
-        Route::delete('/user/{id}', [UserController::class, 'destroy']);
+        Route::put('/user/{user}', [UserController::class, 'update']);
+        Route::delete('/user/{user}', [UserController::class, 'destroy']);
+
+        Route::get('/roles', [RoleController::class, 'index']);
+
+        Route::get('/permissions', [PermissionController::class, 'index']);
     });
 });
