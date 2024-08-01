@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Enums\Enums;
+namespace App\Enums;
 
 enum RoleTypeEnum: string
 {
-    case Manager = 'manager';
-    case Employee = 'employee';
+    case MANAGER = 'manager';
+    case EMPLOYEE = 'employee';
 }

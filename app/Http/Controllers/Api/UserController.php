@@ -5,7 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
-
+use App\Http\Resources\User\UserCollection;
+use App\Http\Resources\User\UserResource;
 class UserController extends Controller
 {
     /**
@@ -13,9 +14,9 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = User::all();
+        $users = User::paginate(10);
 
-        return response()->json($users);
+        return response()->json(new UserCollection($users));
     }
 
     /**
@@ -23,7 +24,9 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $user = User::create($request->only('email', 'password', 'name'));
+
+        return response()->json(UserResource::make($user));
     }
 
     /**
@@ -31,7 +34,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        //
+        return response()->json(new UserResource(User::findOrFail($user->id)));
     }
 
     /**
@@ -39,7 +42,9 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        //
+        $user->update($request->only('email', 'name'));
+
+        return response()->json(UserResource::make($user));
     }
 
     /**
@@ -47,6 +52,8 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        //
+        $user->delete();
+
+        return response()->json(null);
     }
 }
