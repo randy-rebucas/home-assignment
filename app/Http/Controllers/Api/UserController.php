@@ -11,17 +11,25 @@ use Illuminate\Validation\Rules;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Auth\Events\Registered;
 
+use App\Filters\v1\UserFilter;
+
 class UserController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        try {
-            $users = User::paginate(10);
+        $filter = new UserFilter();
+        $filterItems = $filter->transform($request); // [['column', 'operator', 'value']]
 
-            return response()->json(new UserCollection($users));
+        try {
+            if (count($filterItems) == 0) {
+                return response()->json(new UserCollection(User::paginate(10)));
+            } else {
+                $collections = User::where($filterItems)->paginate(10);
+                return response()->json(new UserCollection($collections->appends($request->query())));
+            }
         } catch (\Throwable $e) {
             return response()->json(['message' => $e->getMessage()], 500);
         }
