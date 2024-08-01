@@ -1,0 +1,27 @@
+users
+    employees
+    managers
+
+roles
+authentications
+authorizations
+invnetories
+permissions
+notifications
+
+
+usecase:
+    registration
+        user
+            email
+            password
+            role [default: manager]
+
+categories
+    Full-time
+    Part-time
+    Contract
+    Independent contractor
+    Temporary
+    On-call
+    Volunteer
