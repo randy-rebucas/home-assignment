@@ -7,6 +7,10 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Resources\User\UserCollection;
 use App\Http\Resources\User\UserResource;
+use Illuminate\Validation\Rules;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Auth\Events\Registered;
+
 class UserController extends Controller
 {
     /**
@@ -14,9 +18,13 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = User::paginate(10);
+        try {
+            $users = User::paginate(10);
 
-        return response()->json(new UserCollection($users));
+            return response()->json(new UserCollection($users));
+        } catch (\Throwable $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -24,36 +32,67 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        $user = User::create($request->only('email', 'password', 'name'));
+        try {
+            $request->validate([
+                'name' => ['required', 'string', 'max:255'],
+                'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
+                'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            ]);
 
-        return response()->json(UserResource::make($user));
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->string('password')),
+            ]);
+
+            event(new Registered($user));
+
+            return response()->json(UserResource::make($user));
+        } catch (\Throwable $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(User $user)
+    public function show(int $id)
     {
-        return response()->json(new UserResource(User::findOrFail($user->id)));
+        try {
+            $user = User::findOrFail($id);
+            return response()->json(new UserResource($user));
+        } catch (\Throwable $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, User $user)
+    public function update(Request $request, int $id)
     {
-        $user->update($request->only('email', 'name'));
+        try {
+            $user = User::find($id);
+            $user->name = $request->name;
+            $user->save();
 
-        return response()->json(UserResource::make($user));
+            return response()->json(UserResource::make($user));
+        } catch (\Throwable $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(User $user)
+    public function destroy(int $id)
     {
-        $user->delete();
+        try {
+            User::find($id)->delete();
 
-        return response()->json(null);
+            return response()->json(['message' => 'User Id ' . $id . ' successfully deleted.']);
+        } catch (\Throwable $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
     }
 }
