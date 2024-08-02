@@ -7,6 +7,9 @@ use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
+use App\Models\Manager;
+use App\Models\Employee;
+
 
 class PermissionSeeder extends Seeder
 {
@@ -33,13 +36,13 @@ class PermissionSeeder extends Seeder
         // gets all permissions via Gate::before rule; see AuthServiceProvider
 
         // create demo users
-        $user = \App\Models\User::factory()->create([
+        $user = \App\Models\User::factory()->has(Manager::factory())->create([
             'name' => 'Example Manager',
             'email' => 'manager@example.com',
         ]);
         $user->assignRole($manager);
 
-        $user = \App\Models\User::factory()->create([
+        $user = \App\Models\User::factory()->has(Employee::factory())->create([
             'name' => 'Example Employee',
             'email' => 'employee@example.com',
         ]);

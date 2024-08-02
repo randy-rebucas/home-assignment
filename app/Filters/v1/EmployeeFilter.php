@@ -5,11 +5,11 @@ namespace App\Filters\v1;
 use Illuminate\Http\Request;
 use App\Filters\ApiFilter;
 
-class UserFilter extends ApiFilter
+class EmployeeFilter extends ApiFilter
 {
 
     protected $safeParams = [
-        'name' => ['eq']
+        'first_name' => ['eq']
     ];
 
     protected $columnMap = [];

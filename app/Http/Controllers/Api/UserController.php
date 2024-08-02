@@ -104,6 +104,9 @@ class UserController extends Controller
         }
     }
 
+    /**
+     * Filter users by their roles.
+     */
     public function filter(Request $request)
     {
         $filter = new UserFilter();

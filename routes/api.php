@@ -60,6 +60,10 @@ Route::prefix('v1')->group(function () {
             Route::get('/managers', [ManagerController::class, 'index']);
 
             Route::get('/employees', [EmployeeController::class, 'index']);
+            Route::get('/employee/{employee}', [EmployeeController::class, 'show']);
+            Route::post('/employees', [EmployeeController::class, 'store']);
+            Route::put('/employee/{employee}', [EmployeeController::class, 'update']);
+            Route::delete('/employee/{employee}', [EmployeeController::class, 'destroy']);
         });
 
     });
