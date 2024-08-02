@@ -25,9 +25,9 @@ class UserController extends Controller
 
         try {
             if (count($filterItems) == 0) {
-                return response()->json(new UserCollection(User::paginate(10)));
+                return response()->json(new UserCollection(User::with('roles')->with('permissions')->paginate(10)));
             } else {
-                $collections = User::where($filterItems)->paginate(10);
+                $collections = User::with('roles')->with('permissions')->where($filterItems)->paginate(10);
                 return response()->json(new UserCollection($collections->appends($request->query())));
             }
         } catch (\Throwable $e) {
@@ -99,6 +99,23 @@ class UserController extends Controller
             $user->delete();
 
             return response()->json(['message' => 'User Id ' . $user->id . ' successfully deleted.']);
+        } catch (\Throwable $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function filter(Request $request)
+    {
+        $filter = new UserFilter();
+        $filterItems = $filter->transform($request); // [['column', 'operator', 'value']]
+
+        try {
+            if (count($filterItems) == 0) {
+                return response()->json(new UserCollection(User::with('roles')->with('permissions')->with('manager')->role($request->role)->paginate(10)));
+            } else {
+                $collections = User::with('roles')->with('permissions')->with('manager')->role($request->role)->where($filterItems)->paginate(10);
+                return response()->json(new UserCollection($collections->appends($request->query())));
+            }
         } catch (\Throwable $e) {
             return response()->json(['message' => $e->getMessage()], 500);
         }

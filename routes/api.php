@@ -1,13 +1,17 @@
 <?php
 
 use Illuminate\Http\Request;
+use App\Enums\RoleTypeEnum;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CategoryController;
-use App\Http\Controllers\Api\ManagerController;
 use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\AssignPermissionToRoleController;
+use App\Http\Controllers\Api\AssignRoleController;
+use App\Http\Controllers\Api\EmployeeController;
+use App\Http\Controllers\Api\ManagerController;
 
 Route::prefix('v1')->group(function () {
     // App Version
@@ -15,7 +19,7 @@ Route::prefix('v1')->group(function () {
         return ['Laravel' => app()->version()];
     });
 
-    // Auth
+    // Authentication
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -34,15 +38,29 @@ Route::prefix('v1')->group(function () {
         Route::put('/category/{category}', [CategoryController::class, 'update']);
         Route::delete('/category/{category}', [CategoryController::class, 'destroy']);
 
-        // User
-        Route::get('/users', [UserController::class, 'index']);
-        Route::get('/user/{user}', [UserController::class, 'show']);
-        Route::post('/users', [UserController::class, 'store']);
-        Route::put('/user/{user}', [UserController::class, 'update']);
-        Route::delete('/user/{user}', [UserController::class, 'destroy']);
+        // Only Managers can access this routes
+        Route::group(['middleware' => [
+            'role:' . RoleTypeEnum::MANAGER->value
+        ]], function () {
+            // Authorization
+            Route::post('/assign-role/{user}', AssignRoleController::class);
+            Route::post('/assign-permission/{role}', AssignPermissionToRoleController::class);
+            Route::post('/assign-direct-permission/{user}', AssignPermissionToRoleController::class);
+            Route::get('/roles', [RoleController::class, 'index']);
+            Route::get('/permissions', [PermissionController::class, 'index']);
 
-        Route::get('/roles', [RoleController::class, 'index']);
+            // User
+            Route::get('/users', [UserController::class, 'index']);
+            Route::get('/users/filter', [UserController::class, 'filter']);
+            Route::get('/user/{user}', [UserController::class, 'show']);
+            Route::post('/users', [UserController::class, 'store']);
+            Route::put('/user/{user}', [UserController::class, 'update']);
+            Route::delete('/user/{user}', [UserController::class, 'destroy']);
 
-        Route::get('/permissions', [PermissionController::class, 'index']);
+            Route::get('/managers', [ManagerController::class, 'index']);
+
+            Route::get('/employees', [EmployeeController::class, 'index']);
+        });
+
     });
 });

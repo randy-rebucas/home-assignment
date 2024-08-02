@@ -9,7 +9,8 @@ class UserFilter extends ApiFilter
 {
 
     protected $safeParams = [
-        'name' => ['eq']
+        'name' => ['eq'],
+        'role' => ['eq'],
     ];
 
     protected $columnMap = [];

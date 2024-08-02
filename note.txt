@@ -45,3 +45,7 @@ database
         CategorySeeder.php
 routes
     api.php [updated]
+
+
+$users = User::role('writer')->get(); // Returns only users with the role 'writer'
+$users = User::permission('edit articles')->get(); // Returns only users with the permission 'edit articles' (inherited or directly)
