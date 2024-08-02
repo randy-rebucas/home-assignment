@@ -3,13 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use Illuminate\Http\Request;
 use App\Http\Resources\User\UserCollection;
 use App\Http\Resources\User\UserResource;
-use Illuminate\Validation\Rules;
+use App\Http\Requests\UserRequest;
+
+use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Auth\Events\Registered;
+
 use App\Enums\RoleTypeEnum;
 use App\Filters\v1\UserFilter;
 
@@ -38,15 +39,9 @@ class UserController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(UserRequest $request)
     {
         try {
-            $request->validate([
-                'name' => ['required', 'string', 'max:255'],
-                'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
-                'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            ]);
-
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
@@ -56,8 +51,6 @@ class UserController extends Controller
             $user->assignRole(RoleTypeEnum::EMPLOYEE);
 
             $token = $user->createToken('auth_token')->plainTextToken;
-
-            event(new Registered($user));
 
             return response()->json([UserResource::make($user), 'token' => $token]);
         } catch (\Throwable $e) {
