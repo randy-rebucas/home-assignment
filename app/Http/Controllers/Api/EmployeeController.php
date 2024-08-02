@@ -10,7 +10,7 @@ use App\Models\User;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use App\Filters\v1\EmployeeFilter;
-use Illuminate\Validation\Rules;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\UserRequest;
 use App\Enums\RoleTypeEnum;
@@ -44,24 +44,30 @@ class EmployeeController extends Controller
     public function store(UserRequest $request)
     {
         try {
-            $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => Hash::make($request->string('password')),
-            ]);
+            $user = User::find(Auth::user()->id);
 
-            $user->assignRole(RoleTypeEnum::EMPLOYEE->value);
+            if (!$user->hasRole(RoleTypeEnum::MANAGER->value) || !$user->can('create employee')) {
+                return response()->json(['message' => 'Only ' . RoleTypeEnum::MANAGER->value . ' role can use this action.'], 403);
+            } else {
+                $user = User::create([
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'password' => Hash::make($request->string('password')),
+                ]);
 
-            $employee = Employee::create([
-                'user_id' => $user->id,
-                'category_id' => Category::first()->id
-            ]);
+                $user->assignRole(RoleTypeEnum::EMPLOYEE->value);
 
-            $token = $user->createToken('auth_token')->plainTextToken;
+                $employee = Employee::create([
+                    'user_id' => $user->id,
+                    'category_id' => Category::first()->id
+                ]);
 
-            EmployeeCreated::dispatch($employee);
+                $token = $user->createToken('auth_token')->plainTextToken;
 
-            return response()->json([EmployeeResource::make($employee), 'token' => $token]);
+                EmployeeCreated::dispatch($employee);
+
+                return response()->json([EmployeeResource::make($employee), 'token' => $token]);
+            }
         } catch (\Throwable $e) {
             return response()->json(['message' => $e->getMessage()], 500);
         }
@@ -73,7 +79,13 @@ class EmployeeController extends Controller
     public function show(Employee $employee)
     {
         try {
-            return response()->json(new EmployeeResource($employee));
+            $user = User::find(Auth::user()->id);
+
+            if (!$user->hasRole(RoleTypeEnum::MANAGER->value) || !$user->can('read employee')) {
+                return response()->json(['message' => 'Only ' . RoleTypeEnum::MANAGER->value . ' role can use this action.'], 403);
+            } else {
+                return response()->json(new EmployeeResource($employee));
+            }
         } catch (\Throwable $e) {
             return response()->json(['message' => $e->getMessage()], 500);
         }
@@ -85,8 +97,14 @@ class EmployeeController extends Controller
     public function update(Request $request, Employee $employee)
     {
         try {
-            $employee->update($request->all());
-            return response()->json(EmployeeResource::make($employee));
+            $user = User::find(Auth::user()->id);
+
+            if (!$user->hasRole(RoleTypeEnum::MANAGER->value) || !$user->can('update employee')) {
+                return response()->json(['message' => 'Only ' . RoleTypeEnum::MANAGER->value . ' role can use this action.'], 403);
+            } else {
+                $employee->update($request->all());
+                return response()->json(EmployeeResource::make($employee));
+            }
         } catch (\Throwable $e) {
             return response()->json(['message' => $e->getMessage()], 500);
         }
@@ -98,9 +116,15 @@ class EmployeeController extends Controller
     public function destroy(Employee $employee)
     {
         try {
-            $employee->delete();
+            $user = User::find(Auth::user()->id);
 
-            return response()->json(['message' => 'Employee Id ' . $employee->id . ' successfully deleted.']);
+            if (!$user->hasRole(RoleTypeEnum::MANAGER->value) || !$user->can('delete employee')) {
+                return response()->json(['message' => 'Only ' . RoleTypeEnum::MANAGER->value . ' role can use this action.'], 403);
+            } else {
+                $employee->delete();
+
+                return response()->json(['message' => 'Employee Id ' . $employee->id . ' successfully deleted.']);
+            }
         } catch (\Throwable $e) {
             return response()->json(['message' => $e->getMessage()], 500);
         }

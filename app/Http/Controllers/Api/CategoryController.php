@@ -6,10 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Category\CategoryCollection;
 use App\Http\Resources\Category\CategoryResource;
 use App\Models\Category;
-use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Enums\RoleTypeEnum;
 
 class CategoryController extends Controller
 {
@@ -62,16 +59,9 @@ class CategoryController extends Controller
     public function destroy(Category $category)
     {
         try {
-            $user = User::find(Auth::user()->id);
+            $category->delete();
 
-            if (!$user->hasRole(RoleTypeEnum::MANAGER->value) || !$user->can('delete employee')) {
-                return response()->json(['message' => 'Only ' . RoleTypeEnum::MANAGER->value . ' role can use this action.'], 403);
-            } else {
-
-                $category->delete();
-
-                return response()->json(['message' => 'Category Id ' . $category->id . ' successfully deleted.']);
-            }
+            return response()->json(['message' => 'Category Id ' . $category->id . ' successfully deleted.']);
         } catch (\Throwable $e) {
             return response()->json(['message' => $e->getMessage()], 500);
         }
