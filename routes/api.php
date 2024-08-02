@@ -58,6 +58,10 @@ Route::prefix('v1')->group(function () {
             Route::delete('/user/{user}', [UserController::class, 'destroy']);
 
             Route::get('/managers', [ManagerController::class, 'index']);
+            Route::get('/manager/{manager}', [ManagerController::class, 'show']);
+            Route::post('/managers', [ManagerController::class, 'store']);
+            Route::put('/manager/{manager}', [ManagerController::class, 'update']);
+            Route::delete('/manager/{manager}', [ManagerController::class, 'destroy']);
 
             Route::get('/employees', [EmployeeController::class, 'index']);
             Route::get('/employee/{employee}', [EmployeeController::class, 'show']);
